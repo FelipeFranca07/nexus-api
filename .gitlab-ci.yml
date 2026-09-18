@@ -38,7 +38,7 @@ update-gitops:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
   script:
-    - git clone https://oauth2:${GITOPS_PAT}@github.com/FelipeFranca07/nexus-gitops.git gitops
+    - git clone https://oauth2:${GITOPS_PAT}@github.com/FelipeFranca07/Nexus-GitOps.git gitops
     - apk add --no-cache curl
     - cd gitops/apps/nexus-api/overlays/dev
     - curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" | tar xz

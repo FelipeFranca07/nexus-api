@@ -3,11 +3,11 @@
 Pequena API REST (FastAPI) usada como aplicação de exemplo para demonstrar um
 fluxo completo de **CI/CD + GitOps**: build/test/push da imagem em um repositório
 de aplicação, e deploy declarativo via **ArgoCD** a partir de um repositório
-GitOps separado ([`nexus-gitops`](https://github.com/FelipeFranca07/nexus-gitops)).
+GitOps separado ([`nexus-gitops`](https://github.com/FelipeFranca07/Nexus-GitOps)).
 
 ## Arquitetura do fluxo
 
-![Arquitetura CI/CD + GitOps](https://raw.githubusercontent.com/FelipeFranca07/nexus-gitops/main/architecture.svg)
+![Arquitetura CI/CD + GitOps](https://raw.githubusercontent.com/FelipeFranca07/Nexus-GitOps/main/architecture.svg)
 
 ```mermaid
 flowchart LR
@@ -23,7 +23,7 @@ flowchart LR
 2. Em push no `main`, a imagem é construída e publicada no **GHCR**
    (`ghcr.io/felipefranca07/nexus-api`), tagueada com o SHA do commit.
 3. O pipeline então atualiza automaticamente a tag da imagem no overlay `dev`
-   do repositório [`nexus-gitops`](https://github.com/FelipeFranca07/nexus-gitops)
+   do repositório [`nexus-gitops`](https://github.com/FelipeFranca07/Nexus-GitOps)
    (via `kustomize edit set image`) e faz commit/push dessa mudança.
 4. O **ArgoCD**, que monitora o repositório GitOps, detecta a mudança e
    sincroniza automaticamente o cluster — sem nenhum `kubectl apply` manual.
@@ -63,4 +63,4 @@ Endpoints: `GET /health`, `GET /ready`, `GET /tasks`, `POST /tasks`,
 
 Manifests Kubernetes, overlays por ambiente (dev/staging/prod) e
 Applications do ArgoCD (padrão *App of Apps*) ficam em
-[`nexus-gitops`](https://github.com/FelipeFranca07/nexus-gitops).
+[`nexus-gitops`](https://github.com/FelipeFranca07/Nexus-GitOps).

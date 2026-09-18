@@ -74,7 +74,7 @@ jobs:
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/nexus-gitops
+          repository: ${{ github.repository_owner }}/Nexus-GitOps
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
 
