@@ -1,0 +1,67 @@
+# Reference pipeline: equivalent CI/CD flow implemented in Azure DevOps.
+# Not active on this GitHub-hosted repo (GitHub Actions is the pipeline that
+# actually runs here) - kept as a reference to show the same GitOps flow
+# implemented on Azure DevOps, since that's the platform used in production
+# at my day job.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  imageName: "ghcr.io/felipefranca07/taskflow-api"
+  imageTag: "sha-$(Build.SourceVersion)"
+
+stages:
+  - stage: Test
+    jobs:
+      - job: TestAndLint
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "3.12"
+          - script: pip install -r requirements-dev.txt
+            displayName: "Install dependencies"
+          - script: ruff check app tests
+            displayName: "Lint"
+          - script: pytest -v
+            displayName: "Run tests"
+
+  - stage: Build
+    dependsOn: Test
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: BuildAndPush
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: "ghcr-service-connection"
+              repository: "felipefranca07/taskflow-api"
+              command: "buildAndPush"
+              Dockerfile: "Dockerfile"
+              tags: |
+                $(imageTag)
+                latest
+
+  - stage: UpdateGitOps
+    dependsOn: Build
+    jobs:
+      - job: BumpManifest
+        steps:
+          - checkout: none
+          - script: |
+              git clone https://$(GITOPS_PAT)@github.com/FelipeFranca07/taskflow-gitops.git gitops
+              cd gitops/apps/taskflow-api/overlays/dev
+              curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" | tar xz
+              ./kustomize edit set image $(imageName)=$(imageName):$(imageTag)
+              cd ../../../../..
+              cd gitops
+              git config user.name "taskflow-ci-bot"
+              git config user.email "ci-bot@users.noreply.github.com"
+              git add -A
+              git diff --cached --quiet || git commit -m "chore(dev): bump taskflow-api image to $(imageTag)"
+              git push
+            displayName: "Bump image tag in GitOps repo"

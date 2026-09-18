@@ -1,0 +1,52 @@
+# Reference pipeline: equivalent CI/CD flow implemented in GitLab CI.
+# Not active on this GitHub-hosted repo (GitHub Actions is the pipeline that
+# actually runs here) - kept as a reference to show the same GitOps flow
+# portable to GitLab.
+stages:
+  - test
+  - build
+  - update-gitops
+
+variables:
+  IMAGE_NAME: ghcr.io/felipefranca07/taskflow-api
+  IMAGE_TAG: sha-$CI_COMMIT_SHORT_SHA
+
+test:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - pip install -r requirements-dev.txt
+    - ruff check app tests
+    - pytest -v
+
+build-and-push:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" -t "$IMAGE_NAME:latest" .
+    - docker push "$IMAGE_NAME:$IMAGE_TAG"
+    - docker push "$IMAGE_NAME:latest"
+
+update-gitops:
+  stage: update-gitops
+  image: alpine/git:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - git clone https://oauth2:${GITOPS_PAT}@github.com/FelipeFranca07/taskflow-gitops.git gitops
+    - apk add --no-cache curl
+    - cd gitops/apps/taskflow-api/overlays/dev
+    - curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" | tar xz
+    - ./kustomize edit set image "$IMAGE_NAME=$IMAGE_NAME:$IMAGE_TAG"
+    - cd ../../../../..
+    - cd gitops
+    - git config user.name "taskflow-ci-bot"
+    - git config user.email "ci-bot@users.noreply.github.com"
+    - git add -A
+    - git diff --cached --quiet || git commit -m "chore(dev): bump taskflow-api image to $IMAGE_TAG"
+    - git push
