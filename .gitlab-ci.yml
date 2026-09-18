@@ -17,7 +17,7 @@ test:
   script:
     - pip install -r requirements-dev.txt
     - ruff check app tests
-    - pytest -v
+    - python -m pytest -v
 
 build-and-push:
   stage: build

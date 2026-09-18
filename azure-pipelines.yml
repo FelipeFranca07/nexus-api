@@ -27,7 +27,7 @@ stages:
             displayName: "Install dependencies"
           - script: ruff check app tests
             displayName: "Lint"
-          - script: pytest -v
+          - script: python -m pytest -v
             displayName: "Run tests"
 
   - stage: Build
