@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  IMAGE_NAME: ghcr.io/felipefranca07/taskflow-api
+  IMAGE_NAME: ghcr.io/felipefranca07/nexus-api
 
 permissions:
   contents: read
@@ -74,12 +74,12 @@ jobs:
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/taskflow-gitops
+          repository: ${{ github.repository_owner }}/nexus-gitops
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
 
       - name: Bump image tag for dev overlay
-        working-directory: gitops/apps/taskflow-api/overlays/dev
+        working-directory: gitops/apps/nexus-api/overlays/dev
         run: |
           curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" | tar xz
           ./kustomize edit set image ${{ env.IMAGE_NAME }}=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
@@ -88,9 +88,9 @@ jobs:
       - name: Commit and push
         working-directory: gitops
         run: |
-          git config user.name "taskflow-ci-bot"
+          git config user.name "nexus-ci-bot"
           git config user.email "ci-bot@users.noreply.github.com"
-          git add apps/taskflow-api/overlays/dev/kustomization.yaml
+          git add apps/nexus-api/overlays/dev/kustomization.yaml
           git diff --cached --quiet && echo "No changes to commit" && exit 0
-          git commit -m "chore(dev): bump taskflow-api image to ${{ needs.build-and-push.outputs.image_tag }}"
+          git commit -m "chore(dev): bump nexus-api image to ${{ needs.build-and-push.outputs.image_tag }}"
           git push

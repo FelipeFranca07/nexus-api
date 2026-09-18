@@ -12,7 +12,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  imageName: "ghcr.io/felipefranca07/taskflow-api"
+  imageName: "ghcr.io/felipefranca07/nexus-api"
   imageTag: "sha-$(Build.SourceVersion)"
 
 stages:
@@ -39,7 +39,7 @@ stages:
           - task: Docker@2
             inputs:
               containerRegistry: "ghcr-service-connection"
-              repository: "felipefranca07/taskflow-api"
+              repository: "felipefranca07/nexus-api"
               command: "buildAndPush"
               Dockerfile: "Dockerfile"
               tags: |
@@ -53,15 +53,15 @@ stages:
         steps:
           - checkout: none
           - script: |
-              git clone https://$(GITOPS_PAT)@github.com/FelipeFranca07/taskflow-gitops.git gitops
-              cd gitops/apps/taskflow-api/overlays/dev
+              git clone https://$(GITOPS_PAT)@github.com/FelipeFranca07/nexus-gitops.git gitops
+              cd gitops/apps/nexus-api/overlays/dev
               curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" | tar xz
               ./kustomize edit set image $(imageName)=$(imageName):$(imageTag)
               cd ../../../../..
               cd gitops
-              git config user.name "taskflow-ci-bot"
+              git config user.name "nexus-ci-bot"
               git config user.email "ci-bot@users.noreply.github.com"
               git add -A
-              git diff --cached --quiet || git commit -m "chore(dev): bump taskflow-api image to $(imageTag)"
+              git diff --cached --quiet || git commit -m "chore(dev): bump nexus-api image to $(imageTag)"
               git push
             displayName: "Bump image tag in GitOps repo"

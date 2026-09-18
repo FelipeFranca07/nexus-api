@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 APP_VERSION = os.getenv("APP_VERSION", "dev")
 
-app = FastAPI(title="TaskFlow API", version=APP_VERSION)
+app = FastAPI(title="Nexus API", version=APP_VERSION)
 
 
 class TaskIn(BaseModel):

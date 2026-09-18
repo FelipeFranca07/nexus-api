@@ -1,29 +1,29 @@
-# TaskFlow API
+# Nexus API
 
 Pequena API REST (FastAPI) usada como aplicação de exemplo para demonstrar um
 fluxo completo de **CI/CD + GitOps**: build/test/push da imagem em um repositório
 de aplicação, e deploy declarativo via **ArgoCD** a partir de um repositório
-GitOps separado ([`taskflow-gitops`](https://github.com/FelipeFranca07/taskflow-gitops)).
+GitOps separado ([`nexus-gitops`](https://github.com/FelipeFranca07/nexus-gitops)).
 
 ## Arquitetura do fluxo
 
-![Arquitetura CI/CD + GitOps](https://raw.githubusercontent.com/FelipeFranca07/taskflow-gitops/main/architecture.svg)
+![Arquitetura CI/CD + GitOps](https://raw.githubusercontent.com/FelipeFranca07/nexus-gitops/main/architecture.svg)
 
 ```mermaid
 flowchart LR
     A[Push no main] --> B[GitHub Actions: lint + test]
     B --> C[Build imagem Docker]
     C --> D[Push para GHCR]
-    D --> E[Atualiza tag da imagem\nno repo taskflow-gitops]
+    D --> E[Atualiza tag da imagem\nno repo nexus-gitops]
     E --> F[ArgoCD detecta a mudança]
     F --> G[Sync automático no cluster K8s]
 ```
 
 1. Push/PR no `main` dispara o pipeline de CI (lint com `ruff`, testes com `pytest`).
 2. Em push no `main`, a imagem é construída e publicada no **GHCR**
-   (`ghcr.io/felipefranca07/taskflow-api`), tagueada com o SHA do commit.
+   (`ghcr.io/felipefranca07/nexus-api`), tagueada com o SHA do commit.
 3. O pipeline então atualiza automaticamente a tag da imagem no overlay `dev`
-   do repositório [`taskflow-gitops`](https://github.com/FelipeFranca07/taskflow-gitops)
+   do repositório [`nexus-gitops`](https://github.com/FelipeFranca07/nexus-gitops)
    (via `kustomize edit set image`) e faz commit/push dessa mudança.
 4. O **ArgoCD**, que monitora o repositório GitOps, detecta a mudança e
    sincroniza automaticamente o cluster — sem nenhum `kubectl apply` manual.
@@ -52,8 +52,8 @@ uvicorn app.main:app --reload
 ```
 
 ```bash
-docker build -t taskflow-api .
-docker run -p 8000:8000 taskflow-api
+docker build -t nexus-api .
+docker run -p 8000:8000 nexus-api
 ```
 
 Endpoints: `GET /health`, `GET /ready`, `GET /tasks`, `POST /tasks`,
@@ -63,4 +63,4 @@ Endpoints: `GET /health`, `GET /ready`, `GET /tasks`, `POST /tasks`,
 
 Manifests Kubernetes, overlays por ambiente (dev/staging/prod) e
 Applications do ArgoCD (padrão *App of Apps*) ficam em
-[`taskflow-gitops`](https://github.com/FelipeFranca07/taskflow-gitops).
+[`nexus-gitops`](https://github.com/FelipeFranca07/nexus-gitops).
