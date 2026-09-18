@@ -7,6 +7,8 @@ GitOps separado ([`taskflow-gitops`](https://github.com/FelipeFranca07/taskflow-
 
 ## Arquitetura do fluxo
 
+![Arquitetura CI/CD + GitOps](https://raw.githubusercontent.com/FelipeFranca07/taskflow-gitops/main/architecture.svg)
+
 ```mermaid
 flowchart LR
     A[Push no main] --> B[GitHub Actions: lint + test]
