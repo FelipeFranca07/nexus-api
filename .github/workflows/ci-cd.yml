@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/taskflow-api
+  IMAGE_NAME: ghcr.io/felipefranca07/taskflow-api
 
 permissions:
   contents: read
@@ -82,7 +82,7 @@ jobs:
         working-directory: gitops/apps/taskflow-api/overlays/dev
         run: |
           curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz" | tar xz
-          ./kustomize edit set image ghcr.io/${{ github.repository_owner }}/taskflow-api=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
+          ./kustomize edit set image ${{ env.IMAGE_NAME }}=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image_tag }}
           rm -f kustomize
 
       - name: Commit and push
